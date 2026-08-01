@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shady Kitten</title>
+<link rel="icon" type="image/png" href="images/logo.png">
+<style>
+  :root {
+    --pink: #ff2f9e;
+    --blue: #2fd2ff;
+    --black: #0a0a0a;
+    --charcoal: #141414;
+    --white: #f5f5f5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Segoe UI', Verdana, sans-serif;
+    background: var(--black);
+    color: var(--white);
+    line-height: 1.5;
+  }
+
+  /* grain texture overlay, tiled noise, no external assets */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  /* jagged torn-edge divider between sections */
+  .torn {
+    height: 22px;
+    width: 100%;
+    background: var(--black);
+    clip-path: polygon(
+      0% 0%, 4% 100%, 8% 0%, 12% 100%, 16% 0%, 20% 100%, 24% 0%, 28% 100%,
+      32% 0%, 36% 100%, 40% 0%, 44% 100%, 48% 0%, 52% 100%, 56% 0%, 60% 100%,
+      64% 0%, 68% 100%, 72% 0%, 76% 100%, 80% 0%, 84% 100%, 88% 0%, 92% 100%,
+      96% 0%, 100% 100%, 100% 0%
+    );
+  }
+
+  section.category:nth-of-type(even) .torn-top { background: var(--charcoal); }
+
+  /* ---------- NAV ---------- */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 5%;
+    background: var(--black);
+    border-bottom: 1px solid #2a2a2a;
+    box-shadow: 0 0 20px rgba(255,47,158,0.08);
+  }
+
+  nav .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  nav .brand img.mark {
+    height: 38px;
+    filter: brightness(0.7);
+  }
+
+  nav .brand img.wordmark {
+    height: 22px;
+  }
+
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: 26px;
+  }
+
+  nav ul li a {
+    color: #ccc;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+
+  nav ul li a:hover {
+    color: var(--pink);
+  }
+
+  .nav-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
+
+  .nav-toggle span {
+    width: 26px;
+    height: 3px;
+    background: var(--white);
+    border-radius: 2px;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    text-align: center;
+    padding: 90px 5% 70px;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(255,47,158,0.12), transparent 45%),
+      radial-gradient(circle at 85% 25%, rgba(47,210,255,0.12), transparent 45%),
+      var(--black);
+  }
+
+  .hero-lockup {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .hero img.mark {
+    width: 130px;
+    height: auto;
+    filter: brightness(0.7) drop-shadow(0 0 22px rgba(255,47,158,0.25));
+  }
+
+  .hero img.wordmark {
+    width: min(500px, 70vw);
+    height: auto;
+  }
+
+  .hero p {
+    max-width: 520px;
+    margin: 24px auto 0;
+    font-size: 1.1rem;
+    color: #aaa;
+  }
+
+  .hero .tagline {
+    display: inline-block;
+    margin-top: 26px;
+    padding: 8px 22px;
+    border: 1px solid #444;
+    border-radius: 2px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--blue);
+  }
+
+  /* ---------- SECTIONS ---------- */
+  section.category {
+    padding: 60px 6% 70px;
+    background: var(--black);
+  }
+
+  section.category:nth-of-type(even) {
+    background: var(--charcoal);
+  }
+
+  .cat-header {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 34px;
+  }
+
+  .cat-header h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+
+  .cat-header .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    box-shadow: 0 0 10px currentColor;
+  }
+
+  .cat-header .dot.pink { background: var(--pink); color: var(--pink); }
+  .cat-header .dot.blue { background: var(--blue); color: var(--blue); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 34px;
+  }
+
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+
+  .card .thumb {
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: #1a1a1a;
+    border: 1px solid #2c2c2c;
+  }
+
+  .card .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(0.85) contrast(1.05);
+    transition: filter 0.35s, transform 0.35s;
+  }
+
+  .card:hover .thumb img {
+    filter: saturate(1.15) contrast(1.1);
+    transform: scale(1.03);
+  }
+
+  .card:nth-child(odd):hover .thumb {
+    box-shadow: 0 0 0 2px var(--pink), 0 0 26px rgba(255,47,158,0.35);
+  }
+
+  .card:nth-child(even):hover .thumb {
+    box-shadow: 0 0 0 2px var(--blue), 0 0 26px rgba(47,210,255,0.35);
+  }
+
+  /* ---------- ABOUT ---------- */
+  .about {
+    position: relative;
+    padding: 100px 6%;
+    text-align: center;
+    background: linear-gradient(rgba(5,5,5,0.87), rgba(5,5,5,0.91)), url('images/table.jpg') 20% 55% / cover no-repeat;
+    border-top: 1px solid #2a2a2a;
+    border-bottom: 1px solid #2a2a2a;
+  }
+
+  .about h2 {
+    font-size: 1.9rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 18px;
+  }
+
+  .about p {
+    max-width: 560px;
+    margin: 0 auto;
+    color: #ccc;
+    font-size: 1.05rem;
+  }
+
+  .socials {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 34px;
+    flex-wrap: wrap;
+  }
+
+  .socials a {
+    color: var(--white);
+    background: transparent;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 12px 26px;
+    border-radius: 2px;
+    border: 1px solid #555;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .socials a:nth-child(odd):hover {
+    border-color: var(--pink);
+    color: var(--pink);
+  }
+
+  .socials a:nth-child(even):hover {
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+
+  /* ---------- CONTACT ---------- */
+  .contact {
+    padding: 70px 6%;
+    text-align: center;
+    background: var(--black);
+  }
+
+  .contact h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+
+  .contact p { color: #999; }
+
+  .contact .email {
+    display: inline-block;
+    margin-top: 20px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    font-family: inherit;
+    color: var(--black);
+    background: linear-gradient(90deg, var(--pink), var(--blue));
+    padding: 15px 34px;
+    border: none;
+    border-radius: 2px;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+  }
+
+  footer {
+    text-align: center;
+    padding: 26px;
+    font-size: 0.8rem;
+    color: #555;
+    background: var(--black);
+    border-top: 1px solid #222;
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 768px) {
+    nav ul {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--black);
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    nav ul.open {
+      max-height: 400px;
+    }
+    nav ul li {
+      width: 100%;
+      text-align: center;
+    }
+    nav ul li a {
+      display: block;
+      padding: 14px;
+    }
+    .nav-toggle { display: flex; }
+  }
+
+  /* ---------- HOVER PREVIEW ---------- */
+  .preview-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6vh 6vw;
+    background: rgba(5,5,5,0);
+    pointer-events: none;
+    transition: background 0.25s ease;
+  }
+
+  .preview-layer.visible {
+    background: rgba(5,5,5,0.82);
+  }
+
+  .preview-layer img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border: 1px solid #333;
+    opacity: 0;
+    transform: scale(0.96);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    box-shadow: 0 0 50px rgba(0,0,0,0.6);
+  }
+
+  .preview-layer.visible img {
+    opacity: 1;
+    transform: scale(1);
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">
+    <img class="mark" src="images/logo.png" alt="Shady Kitten logo">
+    <img class="wordmark" src="images/logo-text-white.png" alt="Shady Kitten">
+  </div>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <ul id="navMenu">
+    <li><a href="#prints">Prints</a></li>
+    <li><a href="#pins">Pins</a></li>
+    <li><a href="#special">Special</a></li>
+    <li><a href="#keychains">Keychains</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<header class="hero">
+  <div class="hero-lockup">
+    <img class="mark" src="images/logo.png" alt="Shady Kitten logo">
+    <img class="wordmark" src="images/logo-text-white.png" alt="Shady Kitten">
+  </div>
+  <p>Handmade prints, pins and trinkets.</p>
+  <span class="tagline">Con &amp; Market Portfolio</span>
+</header>
+
+<div class="torn"></div>
+<section class="category" id="prints">
+  <div class="cat-header">
+    <span class="dot pink"></span>
+    <h2>Prints</h2>
+  </div>
+  <div class="grid">
+    <div class="card"><div class="thumb"><img src="images/prints/evernight.jpg" alt=""></div></div>
+    <div class="card"><div class="thumb"><img src="images/prints/nanook.jpg" alt=""></div></div>
+    <div class="card"><div class="thumb"><img src="images/prints/misssha.jpg" alt=""></div></div>
+    <div class="card"><div class="thumb"><img src="images/prints/inuyaaha-smol.jpg" alt=""></div></div>
+    <div class="card"><div class="thumb"><img src="images/prints/fvg-holo.jpg" alt=""></div></div>
+    <div class="card"><div class="thumb"><img src="images/prints/ibban.jpg" alt=""></div></div>
+  </div>
+</section>
+
+<section class="category" id="pins">
+  <div class="cat-header">
+    <span class="dot blue"></span>
+    <h2>Pins</h2>
+  </div>
+  <div class="grid">
+    <div class="card"><div class="thumb"><img src="images/pins/trailblazer-pin.jpg" alt=""></div></div>
+    <div class="card"><div class="thumb"><img src="images/pins/march-pin.jpg" alt=""></div></div>
+    <div class="card"><div class="thumb"><img src="images/pins/dan-heng-pin.jpg" alt=""></div></div>
+  </div>
+</section>
+
+<section class="category" id="special">
+  <div class="cat-header">
+    <span class="dot pink"></span>
+    <h2>Special Designs</h2>
+  </div>
+  <div class="grid">
+    <div class="card"><div class="thumb"><img src="images/special/20260505-203237-1.jpg" alt=""></div></div>
+    <div class="card"><div class="thumb"><img src="images/special/ticket-pt-1-1.png" alt=""></div></div>
+    <div class="card"><div class="thumb"><img src="images/special/ticket-pt-2-2.png" alt=""></div></div>
+  </div>
+</section>
+
+<section class="category" id="keychains">
+  <div class="cat-header">
+    <span class="dot blue"></span>
+    <h2>Keychains</h2>
+  </div>
+  <div class="grid">
+    <div class="card"><div class="thumb"><img src="images/keychains/20260111-150238-1-1.jpg" alt=""></div></div>
+    <div class="card"><div class="thumb"><img src="images/keycap-keychains/keycaps.jpg" alt=""></div></div>
+    <div class="card"><div class="thumb"><img src="images/keycap-keychains/20260419-102158-1.jpg" alt=""></div></div>
+  </div>
+</section>
+
+<section class="about" id="about">
+  <h2>About Shady Kitten</h2>
+  <p>I'm Miya. I draw everything Shady Kitten sells, from the linework up. Come and say hi at my next con or market table.</p>
+  <div class="socials">
+    <a href="https://instagram.com/shadykittenart" target="_blank" rel="noopener">Instagram</a>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+  <h2>Get in touch</h2>
+  <p>For commissions, questions, or just to say hi.</p>
+  <button class="email" id="emailReveal" type="button">Click here for contact information</button>
+</section>
+
+<footer>
+  &copy; 2026 Shady Kitten. All rights reserved.
+</footer>
+
+<div class="preview-layer" id="previewLayer">
+  <img id="previewImg" src="" alt="">
+</div>
+
+<script>
+  const toggle = document.getElementById('navToggle');
+  const menu = document.getElementById('navMenu');
+  toggle.addEventListener('click', () => menu.classList.toggle('open'));
+  menu.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => menu.classList.remove('open'));
+  });
+
+  const previewLayer = document.getElementById('previewLayer');
+  const previewImg = document.getElementById('previewImg');
+  let hoverTimer = null;
+
+  document.querySelectorAll('.card .thumb img').forEach(img => {
+    const thumb = img.closest('.thumb');
+
+    thumb.addEventListener('mouseenter', () => {
+      hoverTimer = setTimeout(() => {
+        previewImg.src = img.src;
+        previewLayer.classList.add('visible');
+      }, 2000);
+    });
+
+    thumb.addEventListener('mouseleave', () => {
+      clearTimeout(hoverTimer);
+      previewLayer.classList.remove('visible');
+    });
+  });
+
+  const emailParts = ['miyasaki.info', 'gmail.com'];
+  const emailBtn = document.getElementById('emailReveal');
+  emailBtn.addEventListener('click', () => {
+    const address = emailParts.join('@');
+    const link = document.createElement('a');
+    link.className = 'email';
+    link.href = 'mailto:' + address;
+    link.textContent = address;
+    emailBtn.replaceWith(link);
+  });
+</script>
+
+</body>
+</html>
